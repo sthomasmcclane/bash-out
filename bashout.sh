@@ -1,6 +1,58 @@
 #!/bin/bash
 
 ###################################################################
+# User Config: Set your preferred colors here or in ~/.bashoutrc   #
+###################################################################
+# Default values (used if not set in config)
+DEFAULT_SAVE_FILE="$HOME/Documents/output.txt"
+DEFAULT_BANNER_COLOR="BLUE"
+DEFAULT_BANNER_TYPE="1"
+
+# ANSI color codes
+COLOR_BLUE="\e[94m"
+COLOR_RED="\e[91m"
+COLOR_GREEN="\e[92m"
+COLOR_YELLOW="\e[93m"
+COLOR_MAGENTA="\e[95m"
+COLOR_CYAN="\e[96m"
+COLOR_WHITE="\e[97m"
+COLOR_RESET="\e[0m"
+
+# Set defaults
+SAVE_FILE="$DEFAULT_SAVE_FILE"
+BANNER_COLOR_NAME="$DEFAULT_BANNER_COLOR"
+DEFAULT_BANNER="$DEFAULT_BANNER_TYPE"
+
+# Load config from ~/.bashoutrc if it exists
+CONFIG_FILE="$HOME/.bashoutrc"
+if [[ -f "$CONFIG_FILE" ]]; then
+    while IFS=':' read -r key value; do
+        # Remove whitespace
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
+        # Skip comments and empty lines
+        [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+        case "$key" in
+            SAVE_FILE) SAVE_FILE="$value" ;;
+            BANNER_COLOR) BANNER_COLOR_NAME="$value" ;;
+            DEFAULT_BANNER) DEFAULT_BANNER="$value" ;;
+        esac
+    done < "$CONFIG_FILE"
+fi
+
+# Map color name to ANSI code
+case "$BANNER_COLOR_NAME" in
+    BLUE)   BANNER_COLOR="$COLOR_BLUE" ;;
+    RED)    BANNER_COLOR="$COLOR_RED" ;;
+    GREEN)  BANNER_COLOR="$COLOR_GREEN" ;;
+    YELLOW) BANNER_COLOR="$COLOR_YELLOW" ;;
+    MAGENTA) BANNER_COLOR="$COLOR_MAGENTA" ;;
+    CYAN)   BANNER_COLOR="$COLOR_CYAN" ;;
+    WHITE)  BANNER_COLOR="$COLOR_WHITE" ;;
+    *)      BANNER_COLOR="$COLOR_BLUE" ;;
+esac
+
+###################################################################
 # Some files are excluded from git commits in the .gitignore file #
 # Check this file and adjust accordingly if you plan to add new   #
 # files or you want to commit the files that this script uses.    #
@@ -10,7 +62,6 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 # Construct paths relative to the script's directory
-SAVE_FILE="$HOME/Documents/output.txt"
 RESOURCE_DIR="$SCRIPT_DIR/resources"
 
 # Create work directory and output file if they don't exist
@@ -43,9 +94,25 @@ case $choice in
        banner_file="$RESOURCE_DIR/note.txt"
        ;;
 
-    3) bash "$SCRIPT_DIR/styles.sh"  # Execute styles.sh
-        banner_file="$RESOURCE_DIR/style.txt" #Use absolute path
-		;;
+    3)
+        # Style prompt logic (formerly in styles.sh)
+        voicelist=("formal" "informal" "conversational" "professional" "academic" "playful" "sarcastic" "intimate" "detached")
+        tonelist=("light-hearted" "serious" "dark" "humorous" "whimsical" "melancholic" "uplifting" "suspenseful" "nostalgic")
+        tenselist=("past" "present" "future")
+        povlist=("first-person" "second-person" "third-person (limited)" "third-person (omniscient)")
+        pacelist=("fast" "slow" "steadily" "frenetically")
+
+        selectedvoice=${voicelist[$RANDOM % ${#voicelist[@]} ]}
+        selectedtone=${tonelist[$RANDOM % ${#tonelist[@]} ]}
+        selectedpace=${pacelist[$RANDOM % ${#pacelist[@]} ]}
+        selectedpov=${povlist[$RANDOM % ${#povlist[@]} ]}
+        selectedtense=${tenselist[$RANDOM % ${#tenselist[@]} ]}
+
+        STYLE_PROMPT="Create a $selectedtone, $selectedpace-paced story with a $selectedvoice voice in $selectedtense-tense from a $selectedpov point of view."
+        # Write to a temp file for compatibility with rest of script
+        echo "$STYLE_PROMPT" > "$RESOURCE_DIR/style.txt"
+        banner_file="$RESOURCE_DIR/style.txt"
+        ;;
 esac
 
 # Ensure banner_file is not empty before trying to read from it
@@ -74,7 +141,7 @@ while true; do
 
     # Display the banner (if it's set)
     if [[ -n "$BANNER" ]]; then  # Check if $BANNER is not empty
-        printf "\e[94m%s\e[0m\n" "$BANNER"
+        printf "${BANNER_COLOR}%s${COLOR_RESET}\n" "$BANNER"
     fi
 
 

@@ -91,7 +91,7 @@ While in the writing interface, the script:
 
 . Prompts you for a new sentence.
 
-image::interface.png[]
+image::docs/interface.png[]
 
 == Writing text
 

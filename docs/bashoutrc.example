@@ -1,0 +1,20 @@
+# ~/.bashoutrc - BashOut configuration file
+#
+# WARNING: If you use both the CLI and GUI versions, changes made in the GUI may overwrite manual edits or comments in this file.
+#
+# To use, copy this file to your home directory as ~/.bashoutrc and edit as needed.
+#
+# On Windows, use WSL or Cygwin and place this file in your Unix home directory (e.g., /home/YourName/.bashoutrc)
+
+# Path to the file where your writing will be saved
+SAVE_FILE: ~/Documents/output.txt
+
+# Banner color (choose from: BLUE, RED, GREEN, YELLOW, MAGENTA, CYAN, WHITE)
+BANNER_COLOR: BLUE
+
+# Default banner type (1 = quote, 2 = note, 3 = style prompt)
+DEFAULT_BANNER: 1
+
+# GUI-only options (ignored by CLI)
+# GUI_THEME: dark
+# GUI_FONT_SIZE: 12 
