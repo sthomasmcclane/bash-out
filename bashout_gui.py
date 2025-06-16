@@ -17,6 +17,17 @@ DEFAULT_SAVE_DIR = Path.home() / 'Documents' / 'BashOut'
 BASHOUTRC = Path.home() / '.bashoutrc'
 RESOURCE_DIR = Path(__file__).parent / 'resources'
 
+# Banner color mapping
+BANNER_COLORS = {
+    'BLUE': '#1a73e8',
+    'RED': '#ea4335',
+    'GREEN': '#34a853',
+    'YELLOW': '#fbbc05',
+    'MAGENTA': '#d93025',
+    'CYAN': '#4285f4',
+    'WHITE': '#ffffff'
+}
+
 # Helper to read ~/.bashoutrc key:value pairs
 bashoutrc_defaults = {}
 if BASHOUTRC.exists():
@@ -128,6 +139,7 @@ class BashOutWindow(QMainWindow):
         self.current_theme = bashoutrc_defaults.get('GUI_THEME', 'light')
         self.font_size_default = int(bashoutrc_defaults.get('GUI_FONT_SIZE', 12))
         self.save_dir = Path(bashoutrc_defaults.get('SAVE_FILE', str(DEFAULT_SAVE_DIR))).expanduser().parent
+        self.banner_color = bashoutrc_defaults.get('BANNER_COLOR', 'BLUE')
         self.current_manuscript = None
         self.load_config()
         self.init_ui()
@@ -372,8 +384,9 @@ class BashOutWindow(QMainWindow):
             }}
         """)
         
-        # Set banner color (keeping it visible in both themes)
-        self.banner.setStyleSheet(f"color: {theme['banner']};")
+        # Set banner color based on .bashoutrc setting
+        banner_color = BANNER_COLORS.get(self.banner_color.upper(), BANNER_COLORS['BLUE'])
+        self.banner.setStyleSheet(f"color: {banner_color};")
 
     def toggle_theme(self):
         self.current_theme = 'dark' if self.current_theme == 'light' else 'light'
