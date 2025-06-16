@@ -28,16 +28,47 @@ BANNER_COLORS = {
     'WHITE': '#ffffff'
 }
 
-# Helper to read ~/.bashoutrc key:value pairs
-bashoutrc_defaults = {}
-if BASHOUTRC.exists():
-    with open(BASHOUTRC, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#') or ':' not in line:
-                continue
-            key, value = line.split(':', 1)
-            bashoutrc_defaults[key.strip().upper()] = value.strip()
+def load_bashoutrc():
+    """Load settings from .bashoutrc file."""
+    settings = {}
+    if BASHOUTRC.exists():
+        try:
+            with open(BASHOUTRC, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#') or ':' not in line:
+                        continue
+                    key, value = line.split(':', 1)
+                    settings[key.strip().upper()] = value.strip()
+        except Exception as e:
+            print(f"Warning: Could not read .bashoutrc: {e}")
+    return settings
+
+def save_bashoutrc(settings):
+    """Save settings to .bashoutrc file."""
+    try:
+        # Read existing settings
+        existing_settings = {}
+        if BASHOUTRC.exists():
+            with open(BASHOUTRC, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#') or ':' not in line:
+                        continue
+                    key, value = line.split(':', 1)
+                    existing_settings[key.strip().upper()] = value.strip()
+        
+        # Update with new settings
+        existing_settings.update(settings)
+        
+        # Write back all settings
+        with open(BASHOUTRC, 'w') as f:
+            for key, value in sorted(existing_settings.items()):
+                f.write(f"{key}: {value}\n")
+        return True
+    except Exception as e:
+        print(f"Error: Could not write to .bashoutrc: {e}")
+        return False
 
 def check_and_install_dependencies():
     """Check for required packages and install if missing."""
@@ -135,11 +166,18 @@ class CenteredPlaceholderTextEdit(QTextEdit):
 class BashOutWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # Use bashoutrc values as defaults
-        self.current_theme = bashoutrc_defaults.get('GUI_THEME', 'light')
-        self.font_size_default = int(bashoutrc_defaults.get('GUI_FONT_SIZE', 12))
-        self.save_dir = Path(bashoutrc_defaults.get('SAVE_FILE', str(DEFAULT_SAVE_DIR))).expanduser().parent
-        self.banner_color = bashoutrc_defaults.get('BANNER_COLOR', 'BLUE')
+        # Load settings with .bashoutrc taking precedence
+        self.bashoutrc_settings = load_bashoutrc()
+        
+        # Use .bashoutrc values as defaults, fall back to defaults if not found
+        self.current_theme = self.bashoutrc_settings.get('GUI_THEME', 'light')
+        self.font_size_default = int(self.bashoutrc_settings.get('GUI_FONT_SIZE', 12))
+        self.banner_color = self.bashoutrc_settings.get('BANNER_COLOR', 'BLUE')
+        
+        # Handle save location - use SAVE_FILE from .bashoutrc if available
+        save_path = self.bashoutrc_settings.get('SAVE_FILE', str(DEFAULT_SAVE_DIR))
+        self.save_dir = Path(save_path).expanduser().parent
+        
         self.current_manuscript = None
         self.load_config()
         self.init_ui()
@@ -147,12 +185,17 @@ class BashOutWindow(QMainWindow):
         self.apply_theme()
 
     def load_config(self):
-        """Load or create configuration."""
+        """Load or create configuration with .bashoutrc taking precedence."""
         if CONFIG_FILE.exists():
-            with open(CONFIG_FILE, 'r') as f:
-                config = json.load(f)
-                self.save_dir = Path(config.get('save_dir', str(self.save_dir)))
-                self.current_manuscript = config.get('current_manuscript')
+            try:
+                with open(CONFIG_FILE, 'r') as f:
+                    config = json.load(f)
+                    # Only use config file values if not set in .bashoutrc
+                    if 'SAVE_FILE' not in self.bashoutrc_settings:
+                        self.save_dir = Path(config.get('save_dir', str(self.save_dir)))
+                    self.current_manuscript = config.get('current_manuscript')
+            except Exception as e:
+                print(f"Warning: Could not read config file: {e}")
         else:
             self.save_dir.mkdir(parents=True, exist_ok=True)
             self.show_first_run_dialog()
@@ -182,6 +225,7 @@ class BashOutWindow(QMainWindow):
         if dir_path:
             self.save_dir = Path(dir_path)
             self.save_dir.mkdir(parents=True, exist_ok=True)
+            # Update both config files
             self.save_config()
 
     def create_new_manuscript(self):
@@ -199,13 +243,31 @@ class BashOutWindow(QMainWindow):
             self.load_initial_state()
 
     def save_config(self):
-        """Save current configuration."""
+        """Save current configuration to both .bashoutrc and config file."""
+        # Save to .bashoutrc
+        settings = {
+            'SAVE_FILE': str(self.save_dir / f"{self.current_manuscript}.txt"),
+            'GUI_THEME': self.current_theme,
+            'GUI_FONT_SIZE': str(self.font_size_default),
+            'BANNER_COLOR': self.banner_color
+        }
+        if not save_bashoutrc(settings):
+            QMessageBox.warning(
+                self,
+                "Configuration Warning",
+                "Could not save settings to .bashoutrc. Some settings may not persist."
+            )
+        
+        # Save GUI-specific settings to config file
         config = {
             'save_dir': str(self.save_dir),
             'current_manuscript': self.current_manuscript
         }
-        with open(CONFIG_FILE, 'w') as f:
-            json.dump(config, f)
+        try:
+            with open(CONFIG_FILE, 'w') as f:
+                json.dump(config, f)
+        except Exception as e:
+            print(f"Warning: Could not write to config file: {e}")
 
     def init_ui(self):
         self.setWindowTitle('BashOut')
