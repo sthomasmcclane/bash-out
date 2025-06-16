@@ -409,6 +409,23 @@ class BashOutWindow(QMainWindow):
                 padding: 2px 5px;
                 border-radius: 3px;
             }}
+            QComboBox:hover {{
+                border: 1px solid {theme['text']};
+            }}
+            QComboBox::drop-down {{
+                border: none;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border: none;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {theme['button_bg']};
+                color: {theme['button_text']};
+                selection-background-color: {theme['text']};
+                selection-color: {theme['window']};
+                border: 1px solid {theme['text']};
+            }}
             QSpinBox {{
                 background-color: {theme['button_bg']};
                 color: {theme['button_text']};
@@ -443,6 +460,18 @@ class BashOutWindow(QMainWindow):
                 border: 1px solid {theme['text']};
                 padding: 2px 5px;
                 border-radius: 3px;
+            }}
+            QMenu {{
+                background-color: {theme['button_bg']};
+                color: {theme['button_text']};
+                border: 1px solid {theme['text']};
+            }}
+            QMenu::item {{
+                padding: 5px 20px;
+            }}
+            QMenu::item:selected {{
+                background-color: {theme['text']};
+                color: {theme['window']};
             }}
         """)
         
