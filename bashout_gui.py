@@ -15,6 +15,7 @@ from PyQt5.QtGui import QFont, QPalette, QColor, QKeyEvent, QPainter, QTextOptio
 CONFIG_FILE = Path.home() / '.bashout_config.json'
 DEFAULT_SAVE_DIR = Path.home() / 'Documents' / 'BashOut'
 BASHOUTRC = Path.home() / '.bashoutrc'
+RESOURCE_DIR = Path(__file__).parent / 'resources'
 
 # Helper to read ~/.bashoutrc key:value pairs
 bashoutrc_defaults = {}
@@ -55,7 +56,32 @@ def check_and_install_dependencies():
             print(f"pip install --user {' '.join(missing_packages)}")
             sys.exit(1)
 
+def initialize_resources():
+    """Initialize the resources directory and required files."""
+    RESOURCE_DIR.mkdir(exist_ok=True)
+    
+    # Initialize quotes.txt if it doesn't exist
+    quotes_file = RESOURCE_DIR / "quotes.txt"
+    if not quotes_file.exists():
+        with open(quotes_file, 'w', encoding='utf-8') as f:
+            f.write("The only way to do great work is to love what you do.\n")
+            f.write("Creativity is intelligence having fun.\n")
+            f.write("Every moment is a fresh beginning.\n")
+    
+    # Initialize note.txt if it doesn't exist
+    note_file = RESOURCE_DIR / "note.txt"
+    if not note_file.exists():
+        with open(note_file, 'w', encoding='utf-8') as f:
+            f.write("Write something amazing today!")
+    
+    # Initialize style.txt if it doesn't exist
+    style_file = RESOURCE_DIR / "style.txt"
+    if not style_file.exists():
+        with open(style_file, 'w', encoding='utf-8') as f:
+            f.write("Create a light-hearted, steadily-paced story with a conversational voice in present-tense from a first-person point of view.")
+
 check_and_install_dependencies()
+initialize_resources()
 
 # Theme colors
 THEMES = {
