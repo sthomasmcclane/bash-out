@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This project has been consolidated into **[Writer's EDC](https://github.com/sthomasmcclane/writers-edc)**. This repository is now legacy and has been **Archived**. The code remains available for reference, but no further updates will be made here.
+
 # BashOut: A Forward-only Writing App
 
 BashOut is a minimalist writing tool designed to help you focus on writing by providing a clean interface and tracking your word count. It comes in two flavors, both designed to work seamlessly across platforms:
